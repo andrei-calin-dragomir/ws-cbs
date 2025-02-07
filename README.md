@@ -27,7 +27,7 @@ source ./venv/bin/activate
 
 2. Start the Flask service
 ```bash
-flask --app ./url_shortner/app.py run
+flask run
 ```
 
 ## Postman Testing

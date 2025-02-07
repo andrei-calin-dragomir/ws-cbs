@@ -25,8 +25,14 @@ def shorten_url():
     long_url = data.get("url")
 
     if not long_url or not URL_REGEX.match(long_url):
-        return jsonify({"error": "Invalid URL"}), 400
+        return jsonify({"error": "Invalid URL format"}), 400
 
+    # Check if URL already exists in the storage
+    for short_id, stored_url in url_store.items():
+        if stored_url == long_url:
+            return jsonify({"short_id": short_id, "message": "URL already shortened"}), 200
+
+    # If URL doesn't exist, generate a new short ID
     short_id = generate_short_id()
     while short_id in url_store:
         short_id = generate_short_id()

@@ -47,7 +47,7 @@ def id_handler(request_id):
     except Exception as e:
         abort(400, e)
 
-@app.route('/<str:url>', methods=['POST'])
+@app.route('/<path:url>', methods=['POST'])
 def url_handler(url):
     try:
         if is_valid_url(url):
@@ -77,4 +77,4 @@ def positive_hash(value):
     return hash(value) % (2**31)  # Limits to range [0, 2^31 - 1]
 
 def is_valid_url(url) -> bool:
-    pass
+    return True

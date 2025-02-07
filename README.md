@@ -17,3 +17,18 @@ source ./venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+
+## Running
+
+1. Activate the python venv
+```bash
+source ./venv/bin/activate
+```
+
+2. Start the Flask service
+```bash
+flask --app ./url_shortner/app.py run
+```
+
+## Postman Testing
+TODO Create Postman configuration and test cases

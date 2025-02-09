@@ -124,7 +124,7 @@ def base_entry_handler(id):
 #       2. User can set an expiry time for the shortened URL. It does not have an expiry time by default or if not set.
 #    Request JSON format:
 #    {
-#        "url": "original URL",
+#        "value": "original URL",
 #        "custom_id": "custom short id",  # Optional 
 #        "expiry_time": "YYYY-MM-DD HH:MM:SS"  # Optional
 #    }
@@ -140,35 +140,36 @@ def shorten_url():
         if not long_url:
             raise KeyError("URL is missing from request.", 400)
 
-        if is_valid_url(long_url):
-            # We check the existence of the url in memory as to avoid storing duplicates.
-            # This lookup method is inspired from this StackOverflow post: https://stackoverflow.com/a/8023329/12995174
-            existent_id = next((k for k, v in URL_Mappings.items() if v['url'] == long_url), None)
-            if existent_id:
-                raise ValueError(f"Provided URL is already present under ID: {existent_id}", 409)
-            
-            # Convert entered date and time to UNIX timestamp
-            if expiry_time:
-                try:
-                    expiry_time = float(datetime.strptime(expiry_time, "%Y-%m-%d %H:%M:%S").timestamp())
-                except:
-                    raise ValueError("Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'", 400)
-
-            # If the user provides a custom ID
-            if custom_id:
-                # Check if the ID is already taken
-                if not is_id_available(custom_id):  
-                    raise ValueError(f"Custom ID already taken: {custom_id}", 409)
-                short_id = custom_id
-            else:
-                # Otherwise generate a new ID for the new url
-                short_id = generate_short_id()
-
-            # Store with expiry timestamp
-            URL_Mappings[short_id] = {'url' : long_url, 'expiry_time' : expiry_time}
-            return jsonify({"id": short_id}), 201
-        else:
+        if not is_valid_url(long_url):
             raise ValueError("Bad URL format", 400)
+        
+        # We check the existence of the url in memory as to avoid storing duplicates.
+        # This lookup method is inspired from this StackOverflow post: https://stackoverflow.com/a/8023329/12995174
+        existent_id = next((k for k, v in URL_Mappings.items() if v['url'] == long_url), None)
+        if existent_id:
+            raise ValueError(f"Provided URL is already present under ID: {existent_id}", 409)
+        
+        # Convert entered date and time to UNIX timestamp
+        if expiry_time:
+            try:
+                expiry_time = float(datetime.strptime(expiry_time, "%Y-%m-%d %H:%M:%S").timestamp())
+            except:
+                raise ValueError("Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'", 400)
+
+        # If the user provides a custom ID
+        if custom_id:
+            # Check if the ID is already taken
+            if not is_id_available(custom_id):  
+                raise ValueError(f"Custom ID already taken: {custom_id}", 409)
+            short_id = custom_id
+        else:
+            # Otherwise generate a new ID for the new url
+            short_id = generate_short_id()
+
+        # Store with expiry timestamp
+        URL_Mappings[short_id] = {'url' : long_url, 'expiry_time' : expiry_time}
+        return jsonify({"id": short_id}), 201
+
     except (KeyError, ValueError) as e:
         return jsonify({"error": str(e.args[0])}), int(e.args[1])
 

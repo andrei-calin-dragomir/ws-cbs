@@ -1,0 +1,983 @@
+{
+	"info": {
+		"_postman_id": "46a1de3f-6be4-469f-a725-261693c69c7f",
+		"name": "WS-CBS-Ass1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32314289"
+	},
+	"item": [
+		{
+			"name": "Basic",
+			"item": [
+				{
+					"name": "Create New Entry",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Function to generate a random alphanumeric string",
+									"function getRandomString(length) {",
+									"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+									"    let result = '';",
+									"    for (let i = 0; i < length; i++) {",
+									"        result += chars.charAt(Math.floor(Math.random() * chars.length));",
+									"    }",
+									"    return result;",
+									"}",
+									"",
+									"// Set the random string as a variable in Postman",
+									"pm.environment.set(\"randomURL\", \"https://\" + getRandomString(10) + \".com\"); // Change 10 to desired length",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    ",
+									"    id = pm.response.json().id;",
+									"",
+									"    pm.collectionVariables.set(\"generatedId\", id);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"value\" : \"{{randomURL}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Entry Copy",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Function to generate a random alphanumeric string",
+									"function getRandomString(length) {",
+									"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+									"    let result = '';",
+									"    for (let i = 0; i < length; i++) {",
+									"        result += chars.charAt(Math.floor(Math.random() * chars.length));",
+									"    }",
+									"    return result;",
+									"}",
+									"",
+									"// Set the random string as a variable in Postman",
+									"pm.environment.set(\"randomURL\", \"https://\" + getRandomString(10) + \".com\"); // Change 10 to desired length",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    ",
+									"    id = pm.response.json().id;",
+									"",
+									"    pm.collectionVariables.set(\"generatedId\", id);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"value\" : \"{{randomURL}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Entry Copy 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Function to generate a random alphanumeric string",
+									"function getRandomString(length) {",
+									"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+									"    let result = '';",
+									"    for (let i = 0; i < length; i++) {",
+									"        result += chars.charAt(Math.floor(Math.random() * chars.length));",
+									"    }",
+									"    return result;",
+									"}",
+									"",
+									"// Set the random string as a variable in Postman",
+									"pm.environment.set(\"randomURL\", \"https://\" + getRandomString(10) + \".com\"); // Change 10 to desired length",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    ",
+									"    id = pm.response.json().id;",
+									"",
+									"    pm.collectionVariables.set(\"generatedId\", id);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"value\" : \"{{randomURL}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Entries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"let jsonData = pm.response.json();",
+									"",
+									"// Check if \"value\" exists and is an array of length 3",
+									"pm.test('\"value\" is an array of length 3', function () {",
+									"    pm.expect(jsonData).to.have.property(\"value\");",
+									"    pm.expect(jsonData.value).to.be.an(\"array\");",
+									"    pm.expect(jsonData.value.length).to.eql(3);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change URL for Entry",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"url\": \"https://www.youtube.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/{{generatedId}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"{{generatedId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Entry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 301\", function () {",
+									"    pm.response.to.have.status(301);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"let jsonData = pm.response.json();",
+									"",
+									"// Check if \"value\" exists and is an array of length 3",
+									"pm.test('\"value\" is an array of length 3', function () {",
+									"    pm.expect(jsonData).to.have.property(\"value\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/{{generatedId}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"{{generatedId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Specific Entry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/{{generatedId}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"{{generatedId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Entries Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"let jsonData = pm.response.json();",
+									"",
+									"// Check if \"value\" exists and is an array of length 3",
+									"pm.test('\"value\" is an array of length 2', function () {",
+									"    pm.expect(jsonData).to.have.property(\"value\");",
+									"    pm.expect(jsonData.value).to.be.an(\"array\");",
+									"    pm.expect(jsonData.value.length).to.eql(2);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete All Entries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"url\": \"https://www.youtube.com\",\r\n    \"custom_id\": \"youtube\",\r\n    \"expiry_time\": \"2025-02-08 14:45:00\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Entries Copy 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"let jsonData = pm.response.json();",
+									"",
+									"// Check if \"value\" exists and is an array of length 3",
+									"pm.test('\"value\" is an array of length 3', function () {",
+									"    pm.expect(jsonData).to.have.property(\"value\");",
+									"    pm.expect(jsonData.value).to.be.null;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Advanced",
+			"item": [
+				{
+					"name": "Get All Entries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"let jsonData = pm.response.json();",
+									"",
+									"// Check if \"value\" exists and is an array of length 3",
+									"pm.test('\"value\" is an array of length 3', function () {",
+									"    pm.expect(jsonData).to.have.property(\"value\");",
+									"    pm.expect(jsonData.value).to.be.null;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Entry Expiry",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Set the expiry time (e.g., 10 minutes from now)",
+									"const expiryMinutes = 0.001;",
+									"const expiryDate = new Date(Date.now() + expiryMinutes * 60000);",
+									"",
+									"// Format as \"YYYY-MM-DD HH:MM:SS\"",
+									"function formatDate(date) {",
+									"    const pad = num => String(num).padStart(2, '0');",
+									"    ",
+									"    const year = date.getFullYear();",
+									"    const month = pad(date.getMonth() + 1); // Months are 0-based",
+									"    const day = pad(date.getDate());",
+									"    const hours = pad(date.getHours());",
+									"    const minutes = pad(date.getMinutes());",
+									"    const seconds = pad(date.getSeconds());",
+									"",
+									"    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;",
+									"}",
+									"",
+									"// Function to generate a random alphanumeric string",
+									"function getRandomString(length) {",
+									"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+									"    let result = '';",
+									"    for (let i = 0; i < length; i++) {",
+									"        result += chars.charAt(Math.floor(Math.random() * chars.length));",
+									"    }",
+									"    return result;",
+									"}",
+									"",
+									"// Set the random string as a variable in Postman",
+									"pm.environment.set(\"randomURL\", \"https://\" + getRandomString(10) + \".com\"); // Change 10 to desired length",
+									"",
+									"",
+									"// Convert and store in Postman environment",
+									"const formattedExpiryTime = formatDate(expiryDate);",
+									"pm.environment.set(\"expiryTime\", formattedExpiryTime);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    ",
+									"    id = pm.response.json().id;",
+									"",
+									"    pm.collectionVariables.set(\"advanced_generatedId\", id);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"value\" : \"{{randomURL}}\",\n    \"expiry_time\" : \"{{expiryTime}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Entries Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Entry Custom ID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Set the expiry time (e.g., 10 minutes from now)",
+									"const expiryMinutes = 1;",
+									"const expiryDate = new Date(Date.now() + expiryMinutes * 60000);",
+									"",
+									"// Format as \"YYYY-MM-DD HH:MM:SS\"",
+									"function formatDate(date) {",
+									"    const pad = num => String(num).padStart(2, '0');",
+									"    ",
+									"    const year = date.getFullYear();",
+									"    const month = pad(date.getMonth() + 1); // Months are 0-based",
+									"    const day = pad(date.getDate());",
+									"    const hours = pad(date.getHours());",
+									"    const minutes = pad(date.getMinutes());",
+									"    const seconds = pad(date.getSeconds());",
+									"",
+									"    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;",
+									"}",
+									"",
+									"// Function to generate a random alphanumeric string",
+									"function getRandomString(length) {",
+									"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+									"    let result = '';",
+									"    for (let i = 0; i < length; i++) {",
+									"        result += chars.charAt(Math.floor(Math.random() * chars.length));",
+									"    }",
+									"    return result;",
+									"}",
+									"",
+									"// Set the random string as a variable in Postman",
+									"pm.environment.set(\"randomURL\", \"https://\" + getRandomString(10) + \".com\"); // Change 10 to desired length",
+									"",
+									"// Set the random custom ID as a variable in Postman",
+									"pm.environment.set(\"advanced_custom_randomID\", getRandomString(4)); // Change 6 to desired length"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    ",
+									"    id = pm.response.json().id;",
+									"",
+									"    pm.collectionVariables.set(\"custom_randomId\", id);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"value\" : \"{{randomURL}}\",\n    \"custom_id\" : \"{{advanced_custom_randomID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Entries Copy 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"let jsonData = pm.response.json();",
+									"",
+									"// Check if \"value\" exists and is an array of length 2",
+									"pm.test('\"value\" is an array of length 2', function () {",
+									"    pm.expect(jsonData).to.have.property(\"value\");",
+									"    pm.expect(jsonData.value).to.be.an(\"array\");",
+									"    pm.expect(jsonData.value.length).to.eql(2);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Entry Data",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Set the expiry time (e.g., 10 minutes from now)",
+									"const expiryMinutes = 0.5;",
+									"const expiryDate = new Date(Date.now() + expiryMinutes * 60000);",
+									"",
+									"// Format as \"YYYY-MM-DD HH:MM:SS\"",
+									"function formatDate(date) {",
+									"    const pad = num => String(num).padStart(2, '0');",
+									"    ",
+									"    const year = date.getFullYear();",
+									"    const month = pad(date.getMonth() + 1); // Months are 0-based",
+									"    const day = pad(date.getDate());",
+									"    const hours = pad(date.getHours());",
+									"    const minutes = pad(date.getMinutes());",
+									"    const seconds = pad(date.getSeconds());",
+									"",
+									"    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;",
+									"}",
+									"",
+									"// Convert and store in Postman environment",
+									"const formattedExpiryTime = formatDate(expiryDate);",
+									"pm.environment.set(\"expiryTime\", formattedExpiryTime);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"custom_id\" : \"manualId\",\n    \"expiry_time\" : \"{{expiryTime}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/{{advanced_custom_randomID}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"{{advanced_custom_randomID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Entries Copy 3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if the response status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"let jsonData = pm.response.json();",
+									"",
+									"// Check if \"value\" exists and is an array of length 2",
+									"pm.test('\"value\" is an array of length ', function () {",
+									"    pm.expect(jsonData).to.have.property(\"value\");",
+									"    pm.expect(jsonData.value).to.be.an(\"array\");",
+									"    pm.expect(jsonData.value.length).to.eql(2);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "data",
+			"value": ""
+		},
+		{
+			"key": "id",
+			"value": ""
+		},
+		{
+			"key": "generatedId",
+			"value": ""
+		},
+		{
+			"key": "custom_randomId",
+			"value": ""
+		},
+		{
+			"key": "advanced_generatedId",
+			"value": ""
+		}
+	]
+}

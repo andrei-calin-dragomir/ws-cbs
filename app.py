@@ -202,7 +202,7 @@ def update_entry_url(id):
 
         # Update the mapping
         URL_Mappings[id]['url'] = new_url                   
-        return '', 200
+        return 'Update successful.', 200
     except (KeyError, ValueError) as e:
         return jsonify({"error": str(e.args[0])}), int(e.args[1])
     

@@ -95,9 +95,8 @@ class TestApi(unittest.TestCase):
 
 
         endpoint = "/"
-        url = f"{self.base_url}{endpoint}{id}"
-        print(url_after_update)
-        response = requests.put(url, json=({'url': url_after_update}))
+        url = f"{self.base_url}{endpoint}{id}"   
+        response = requests.put(url, data=json.dumps({'url': url_after_update}))
         self.assertEqual(response.status_code, 200, f"Expected status code 200, but got {response.status_code}")
 
         #check value has been rally changed by doing a get
@@ -108,12 +107,12 @@ class TestApi(unittest.TestCase):
         
         #check 400 by passing invalid url
         url = f"{self.base_url}{endpoint}{id}"   
-        response = requests.put(url, json=({'url': invalid_url}))
+        response = requests.put(url, data=json.dumps({'url': invalid_url}))
         self.assertEqual(response.status_code, 400, f"Expected status code 400, but got {response.status_code}")
 
         #check 404 aka if id exists
         url = f"{self.base_url}{endpoint}{not_existing_id}"   
-        response = requests.put(url, json=({'url': not_existing_id}))
+        response = requests.put(url, data=json.dumps({'url': not_existing_id}))
         self.assertEqual(response.status_code, 404, f"Expected status code 404, but got {response.status_code}")
         
 

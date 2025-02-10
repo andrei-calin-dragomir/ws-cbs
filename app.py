@@ -1,6 +1,7 @@
 # Initialization code based on the Flask application setup: https://flask.palletsprojects.com/en/stable/quickstart/
 from flask import Flask, request, abort, jsonify
 import re
+import json
 import string
 import random
 import time
@@ -181,6 +182,9 @@ def shorten_url():
 #    {
 #        "url": "new url"
 #    }
+#    This implementation accepts both the url as:
+#       1. A string
+#       2. A JSON body
 #############################################################
 
 @app.route("/<string:id>", methods=["PUT"])
@@ -189,9 +193,13 @@ def update_entry_url(id):
         if id not in URL_Mappings:
             raise KeyError("Short URL not found.", 404)
 
-        data : dict = request.json
-        new_url = data.get("url", None)
+        # Handle JSON payload according to content type
+        try:
+            data = request.get_json()
+        except Exception:
+            data = json.loads(request.data.decode("utf-8") or "{}")
 
+        new_url = data.get("url", None)
         # New URL must be provided with the ID in this case
         if not new_url:
             raise ValueError("Missing 'url' in request body.", 400)

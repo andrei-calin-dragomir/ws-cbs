@@ -30,8 +30,14 @@ pip install -r requirements.txt
 source ./venv/bin/activate
 ```
 
-2. Start the Flask service
+2. Start the Authentication service
 
 ```bash
-python3 app.py
+python3 login.py # (PORT : 5001)
+```
+
+3. Start the URL Shortner service
+
+```bash
+python3 app.py # (PORT : 5000)
 ```

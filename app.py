@@ -106,6 +106,7 @@ def is_id_available(id) -> bool:
     return id not in URL_Mappings.get(g.username, {})
 
 
+
 #############################################################
 #                GENERATE RANDOM SHORT ID
 #############################################################
@@ -123,7 +124,6 @@ def generate_short_id(length=6):
     if is_id_available(id):
         return id
     return generate_short_id(length)
-
 
 #############################################################
 #       BASE URL MAPPINGS HANDLER (GET/DELETE METHODS)
@@ -149,7 +149,6 @@ def base_handler():
         # Remove all entries for the authenticated user
         URL_Mappings[g.username] = {}
         return "", 404
-
     
 #############################################################
 #       BASE URL ENTRY HANDLER (GET/DELETE METHODS)
@@ -175,7 +174,6 @@ def base_entry_handler(id):
         del URL_Mappings[g.username][id]
         return "", 204
 
-
 #############################################################
 #              CREATE SHORT URL (POST METHOD)
 #############################################################
@@ -192,7 +190,7 @@ def base_entry_handler(id):
 #############################################################
 @app.route("/", methods=["POST"])
 def shorten_url():
-    data: dict = request.json
+    data : dict = request.json
     long_url = data.get("value", None)
     custom_id = data.get("custom_id", None)
     expiry_time = data.get("expiry_time", None)
@@ -203,7 +201,7 @@ def shorten_url():
 
         if not is_valid_url(long_url):
             raise ValueError("Bad URL format", 400)
-
+            
         # Ensure user has an entry in URL_Mappings
         if g.username not in URL_Mappings:
             URL_Mappings[g.username] = {}
@@ -234,7 +232,6 @@ def shorten_url():
 
     except (KeyError, ValueError) as e:
         return jsonify({"error": str(e.args[0])}), int(e.args[1])
-
 
 #############################################################
 #               UPDATE URL (PUT METHOD)
@@ -267,7 +264,6 @@ def update_entry_url(id):
         new_url = data.get("url", None)
         if not new_url:
             raise ValueError("Missing 'url' in request body.", 400)
-
         # Check URL validity
         if not is_valid_url(new_url):
             raise ValueError("Provided URL is not valid.", 400)
@@ -278,7 +274,6 @@ def update_entry_url(id):
 
     except (KeyError, ValueError) as e:
         return jsonify({"error": str(e.args[0])}), int(e.args[1])
-
     
 #############################################################
 #         BONUS: UPDATE ID and TIMESTAMP (PATCH METHOD)
@@ -298,6 +293,7 @@ def update_url(id):
             raise KeyError("Unauthorized or URL not found.", 403)
 
         data: dict = request.json
+
         new_expiry = data.get("expiry_time", None)
         new_custom_id = data.get("custom_id", None)
 
@@ -330,7 +326,6 @@ def update_url(id):
     except (KeyError, ValueError) as e:
         return jsonify({"error": str(e.args[0])}), int(e.args[1])
 
-
 #############################################################
 #               BONUS: AUTO CLEAN EXPIRED LINKS
 #############################################################
@@ -357,3 +352,4 @@ if __name__ == "__main__":
     cleanup_thread.start()
 
     app.run(port=5000, debug=True)
+

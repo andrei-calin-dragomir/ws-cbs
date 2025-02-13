@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, g
 app = Flask(__name__)
 SECRET_KEY = "Rigel"  # Keep this secret and do not expose it
 
-# In-memory storage for users: {username: {password_hash}}
+# In-memory storage for users: { username : password_hash}
 users_db = {}
 
 def hash_password(password):

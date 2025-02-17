@@ -228,7 +228,6 @@ class TestApi(unittest.TestCase):
         endpoint = "/"
         url = f"{self.base_url}{endpoint}"
         response = requests.get(url, headers=self.headers)
-        print(f"This is the response: {response.json().get('value')}")
         self.assertIsNone(response.json().get("value"), "The value should be None since should be empty.")
 
 

@@ -7,7 +7,8 @@ import random
 import time
 import threading
 from datetime import datetime
-
+from login import verify_jwt
+import requests
 import base64
 import hmac
 import hashlib
@@ -18,17 +19,17 @@ import hashlib
 
 # How the URL Shortening Process is Working:
 
-# 1. User submits a long URL via a POST request (along with optional expiry time and custom short ID);
-# 2. If a custom short ID is provided, we check if its available and store the URL under that ID;
-# 3. If no custom ID is provided, we generate a random 6 character short ID using Base62 encoding;
-# 4. We check for uniqueness by making sure the generated ID is not in use already;
-# 5. The mapping (short ID to original URL) is stored in a memory dictionary;
-# 6. The user gets the shortened URL as a response.
+# 1. User submits a long URL via a POST request (along with optional expiry time and custom short ID)
+# 2. If a custom short ID is provided, we check if its available and store the URL under that ID
+# 3. If no custom ID is provided, we generate a random 6 character short ID using Base62 encoding
+# 4. We check for uniqueness by making sure the generated ID is not in use already
+# 5. The mapping (short ID to original URL) is stored in a memory dictionary
+# 6. The user gets the shortened URL as a response
 
 # How the short URL is used:
-# 1. A GET request fetches the original URL using the short ID;
-# 2. If the link has expired, it is deleted and error is returned;
-# 3. If the link is valid, the user gets the original URL as a response.
+# 1. A GET request fetches the original URL using the short ID
+# 2. If the link has expired, it is deleted and error is returned
+# 3. If the link is valid, the user gets the original URL as a response
 
 app = Flask(__name__)
 
@@ -40,12 +41,9 @@ app = Flask(__name__)
 # 'id' : {'url', 'expiry_time'} pairs
 URL_Mappings = {}
 
-#############################################################
-#############################################################
-SECRET_KEY = "Rigel"  # This must match login.py
+SESSION_STORE = {}  # { "username": "active_token" }
 
-#############################################################
-#############################################################
+SECRET_KEY = "Rigel"  # Secret key used for signing JWT tokens (must match with login.py)
 
 # Regular expression for validating proper URL formats (only URLs starting with http or https)
 URL_REGEX = re.compile(r'^(http|https)://[^ "<>]*$')
@@ -56,43 +54,51 @@ BASE62 = string.ascii_letters + string.digits
 # JWT Secret Key (Must match authentication service)
 AUTH_SERVICE_URL = "http://localhost:5001"
 
+#############################################################
+#  Verify the JWT token by making a request
+#  to the authentication service login.py. If it's
+#  valid, return the username. Otherwise return None
+#############################################################
 def verify_jwt(token):
     try:
-        header, payload, signature = token.split(".")
-        expected_signature = base64.urlsafe_b64encode(
-            hmac.new(SECRET_KEY.encode(), f"{header}.{payload}".encode(), hashlib.sha256).digest()
-        ).decode().rstrip("=")
+        # Make a request to login.py to verify the token
+        response = requests.get(f"{AUTH_SERVICE_URL}/verify", headers={"Authorization": f"Bearer {token}"})
 
-        if signature != expected_signature:
-            return None  # Invalid signature
+        if response.status_code == 200:
+            return response.json().get("username")  # Return the username if valid
+        else:
+            print(f"Token verification failed: {response.json()}")
+            return None
+    except Exception as e:
+        print(f"Exception in verify_jwt(): {str(e)}")
+        return None  # If error, token as invalid
 
-        decoded_payload = json.loads(base64.urlsafe_b64decode(payload + "==").decode())
-        if decoded_payload["exp"] < time.time():
-            return None  # Token expired
 
-        return decoded_payload["username"]
-    except Exception:
-        return None
-
+#############################################################
+# Middleware to authenticate incoming requests. Ensures
+# that users are authenticated before accessing protected routes
+#############################################################
 @app.before_request
 def authenticate_request():
-    # if request.path == "/" and request.method == 
-    #     return  # Allow the homepage (if needed), but require authentication elsewhere
+    print(f"Incoming request: {request.method} {request.path}")
 
     token = request.headers.get("Authorization")
     if not token:
         print("Missing Authorization header")
         return jsonify({"error": "Missing token"}), 403
-    print(token)
+
     username = verify_jwt(token.replace("Bearer ", ""))
     if not username:
-        print("Invalid or Expired Token")
+        print("Invalid or expired token")
         return jsonify({"error": "Invalid or expired token"}), 403
 
-    print(f" Authenticated User: {username}")  # Debug print
+    print(f"Authenticated User: {username}")
     g.username = username  # Store authenticated user globally
+
+    # Ensures user has an entry in URL_Mappings
     if username not in URL_Mappings:
         URL_Mappings[username] = {}
+
 
 #############################################################
 #               SAFETY & VALIDITY CHECKS
@@ -104,7 +110,6 @@ def is_valid_url(url) -> bool:
 
 def is_id_available(id) -> bool:
     return id not in URL_Mappings.get(g.username, {})
-
 
 
 #############################################################
@@ -343,7 +348,7 @@ def cleanup_expired_links():
             if expired_keys:
                 for key in expired_keys:
                     del URL_Mappings[user][key]
-                print(f"✅ Cleaned up {len(expired_keys)} expired links for user: {user}")
+                print(f"Cleaned up {len(expired_keys)} expired links for user: {user}")
 
 
 if __name__ == "__main__":

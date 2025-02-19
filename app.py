@@ -161,8 +161,8 @@ def base_handler():
 #       The path specifier enforces that, in order for this case to be applicable, the unique_id must be present in the url. 
 #       Otherwise, the request is handled by the base_handler()
 #       This function covers the following functionality over a specific entry in the mappings:
-#           1. The GET method returns all the short IDs present in memory;
-#           2. The DELETE method empties the memory of any mappings present.
+#           1. The GET method returns the specific short ID present of the user;
+#           2. The DELETE method empties the memory of specific short ID of the user.
 #############################################################
 @app.route("/<string:id>", methods=["GET", "DELETE"])
 def base_entry_handler(id):

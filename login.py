@@ -72,6 +72,40 @@ def logout():
 
 
 #############################################################
+# Allows an authenticated user to update their password
+# The user must provide the old password for verification
+#############################################################
+@app.route("/users", methods=["PUT"])
+def change_password():
+    token = request.headers.get("Authorization")
+    if not token:
+        return jsonify({"error": "Missing token"}), 403
+
+    username = verify_jwt(token.replace("Bearer ", ""))
+    if not username:
+        return jsonify({"error": "Invalid or expired token"}), 403
+
+    data = request.json
+    old_password, new_password = data.get("old_password"), data.get("new_password")
+
+    if not old_password or not new_password:
+        return jsonify({"error": "Old and new passwords are required"}), 400
+
+    # Verify old password
+    if username not in users_db or not verify_password(old_password, users_db[username]):
+        return jsonify({"error": "Incorrect old password"}), 403
+
+    # Update password with new hash
+    users_db[username] = hash_password(new_password)
+
+    # Invalidate old session to force re login
+    if username in SESSION_STORE:
+        del SESSION_STORE[username]
+
+    return jsonify({"message": "Password changed successfully. Please log in again."}), 200
+
+
+#############################################################
 #    Verifies if a provided JWT token is valid and active
 #############################################################
 @app.route("/verify", methods=["GET"])

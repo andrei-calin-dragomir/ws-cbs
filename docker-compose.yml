@@ -16,8 +16,8 @@ services:
 
   auth_service:
     build:
-      context: .
-      dockerfile: Dockerfile.login
+      context: ./auth
+      dockerfile: Dockerfile
     container_name: auth_service
     depends_on:
       - db
@@ -26,11 +26,11 @@ services:
     ports:
       - "5001:5001"
 
-  url_shortener:
+  url_shortener_service:
     build:
-      context: .
-      dockerfile: Dockerfile.app
-    container_name: url_shortener
+      context: ./url_shortener
+      dockerfile: Dockerfile
+    container_name: url_shortener_service
     depends_on:
       - db
       - auth_service

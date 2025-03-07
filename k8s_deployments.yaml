@@ -1,8 +1,14 @@
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ws-cbs
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
+  namespace: ws-cbs
   labels:
     app: postgres
 spec:
@@ -39,6 +45,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
+  namespace: ws-cbs
 spec:
   selector:
     app: postgres
@@ -52,6 +59,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
+  namespace: ws-cbs
 spec:
   accessModes:
     - ReadWriteOnce
@@ -63,6 +71,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth-service
+  namespace: ws-cbs
   labels:
     app: auth-service
 spec:
@@ -82,12 +91,13 @@ spec:
             - containerPort: 5001
           env:
             - name: DATABASE_URL
-              value: "postgresql://user:password@postgres/url_shortener_db"
+              value: "postgresql://user:password@postgres.ws-cbs/url_shortener_db"
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: auth-service
+  namespace: ws-cbs
 spec:
   selector:
     app: auth-service
@@ -102,6 +112,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: url-shortener
+  namespace: ws-cbs
   labels:
     app: url-shortener
 spec:
@@ -121,14 +132,15 @@ spec:
             - containerPort: 5000
           env:
             - name: DATABASE_URL
-              value: "postgresql://user:password@postgres/url_shortener_db"
+              value: "postgresql://user:password@postgres.ws-cbs/url_shortener_db"
             - name: AUTH_SERVICE_URL
-              value: "http://auth-service:5001"
+              value: "http://auth-service.ws-cbs:5001"
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: url-shortener
+  namespace: ws-cbs
 spec:
   selector:
     app: url-shortener

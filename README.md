@@ -2,42 +2,13 @@
 
 This repository contains the assignments of Web Services and Cloud-Based Systems as part of the Computer Science Msc degree.
 
-## Setup
+## Docker Deployment
 
-1. Initialize a python environment using:
-
-```bash
-python3 -m venv venv
-```
-
-2. Activate the python environment using:
+You can deploy the application using:
 
 ```bash
-source ./venv/bin/activate
+docker compose up
 ```
 
-3. Install the dependencies using:
-
-```bash
-pip install -r requirements.txt
-```
-
-## Running
-
-1. Activate the python venv
-
-```bash
-source ./venv/bin/activate
-```
-
-2. Start the Authentication service
-
-```bash
-python3 login.py # (PORT : 5001)
-```
-
-3. Start the URL Shortner service
-
-```bash
-python3 app.py # (PORT : 5000)
-```
+The Authentication service runs on port `5001` and the URL Shortener service runs on port `5000`.
+The application can be tested using the `Postman` configurations present in their respective folder.

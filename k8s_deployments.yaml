@@ -16,24 +16,24 @@ spec:
         app: postgres
     spec:
       containers:
-      - name: postgres
-        image: postgres:latest
-        ports:
-        - containerPort: 5432
-        env:
-        - name: POSTGRES_USER
-          value: "user"
-        - name: POSTGRES_PASSWORD
-          value: "password"
-        - name: POSTGRES_DB
-          value: "url_shortener_db"
-        volumeMounts:
-        - name: postgres-storage
-          mountPath: /var/lib/postgresql/data
+        - name: postgres
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "user"
+            - name: POSTGRES_PASSWORD
+              value: "password"
+            - name: POSTGRES_DB
+              value: "url_shortener_db"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
       volumes:
-      - name: postgres-storage
-        persistentVolumeClaim:
-          claimName: postgres-pvc
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -43,10 +43,10 @@ spec:
   selector:
     app: postgres
   ports:
-  - protocol: TCP
-    port: 5432
-    targetPort: 5432
-  clusterIP: None  # Headless service for internal DB connection
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  clusterIP: None # Headless service for internal DB connection
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -54,7 +54,7 @@ metadata:
   name: postgres-pvc
 spec:
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
@@ -76,13 +76,13 @@ spec:
         app: auth-service
     spec:
       containers:
-      - name: auth-service
-        image: auth_service:latest  # Ensure image is built and available in cluster
-        ports:
-        - containerPort: 5001
-        env:
-        - name: DATABASE_URL
-          value: "postgresql://user:password@postgres/url_shortener_db"
+        - name: auth-service
+          image: andreicalindragomir/ws-cbs:auth_service
+          ports:
+            - containerPort: 5001
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres/url_shortener_db"
 ---
 apiVersion: v1
 kind: Service
@@ -92,10 +92,11 @@ spec:
   selector:
     app: auth-service
   ports:
-  - protocol: TCP
-    port: 5001
-    targetPort: 5001
-  type: ClusterIP
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+      nodePort: 30001 # External port
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -104,7 +105,7 @@ metadata:
   labels:
     app: url-shortener
 spec:
-  replicas: 3  # Required for assignment
+  replicas: 3 # Required for assignment
   selector:
     matchLabels:
       app: url-shortener
@@ -114,15 +115,15 @@ spec:
         app: url-shortener
     spec:
       containers:
-      - name: url-shortener
-        image: url_shortener:latest  # Ensure image is built and available in cluster
-        ports:
-        - containerPort: 5000
-        env:
-        - name: DATABASE_URL
-          value: "postgresql://user:password@postgres/url_shortener_db"
-        - name: AUTH_SERVICE_URL
-          value: "http://auth-service:5001"
+        - name: url-shortener
+          image: andreicalindragomir/ws-cbs:url_shortener_service
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres/url_shortener_db"
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service:5001"
 ---
 apiVersion: v1
 kind: Service
@@ -132,7 +133,8 @@ spec:
   selector:
     app: url-shortener
   ports:
-  - protocol: TCP
-    port: 5000
-    targetPort: 5000
-  type: LoadBalancer  # Change to NodePort if required
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      nodePort: 30000 # External port
+  type: NodePort

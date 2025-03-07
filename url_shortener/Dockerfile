@@ -7,11 +7,9 @@ WORKDIR /app
 # Copy necessary files
 COPY app.py .
 
-# Install Flask and requests (needed for token verification)
-RUN pip install flask requests
-
+# Install (minimal dependencies for efficiency)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Expose port 5000 for the URL shortener service
 EXPOSE 5000

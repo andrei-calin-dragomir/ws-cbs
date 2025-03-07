@@ -1,18 +1,19 @@
 # Initialization code based on the Flask application setup: https://flask.palletsprojects.com/en/stable/quickstart/
-from flask import Flask, request, abort, jsonify, g
+import os
 import re
 import json
+import time
+import hmac
 import string
 import random
-import time
+import base64
+import hashlib
+import requests
+import psycopg2
 import threading
 from datetime import datetime
-import requests
-import base64
-import hmac
-import hashlib
-import psycopg2
-import os
+from logging.config import dictConfig
+from flask import Flask, request, abort, jsonify, g
 
 #############################################################
 #              HOW DOES THE URL SHORTNER WORK?
@@ -31,6 +32,22 @@ import os
 # 1. A GET request fetches the original URL using the short ID
 # 2. If the link has expired, it is deleted and error is returned
 # 3. If the link is valid, the user gets the original URL as a response
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 
@@ -89,14 +106,14 @@ def verify_jwt(token):
         ).decode().rstrip("=")
 
         if signature != expected_signature:
-            print("Invalid JWT signature")
+            app.logger.info("Invalid JWT signature")
             return None  # Invalid signature
 
         # Decode payload and check expiration time
         decoded_payload = json.loads(base64.urlsafe_b64decode(payload + "==").decode())
 
         if decoded_payload["exp"] < time.time():
-            print("Token has expired")
+            app.logger.info("Token has expired")
             return None  # Token expired
 
         username = decoded_payload["username"]
@@ -110,18 +127,18 @@ def verify_jwt(token):
                 result = cur.fetchone()
 
                 if not result:
-                    print(f"User '{username}' not found in database sessions")
+                    app.logger.info(f"User '{username}' not found in database sessions")
                     return None  # User session not found
 
                 stored_token = result[0]
                 if stored_token != token:
-                    print(f"Token mismatch! Stored: {stored_token}, Provided: {token}")
+                    app.logger.info(f"Token mismatch! Stored: {stored_token}, Provided: {token}")
                     return None  # Token has been replaced or invalidated
 
-        print(f"Token is valid for user: {username}")
+        app.logger.info(f"Token is valid for user: {username}")
         return username
     except Exception as e:
-        print(f"Exception in verify_jwt(): {str(e)}")
+        app.logger.info(f"Exception in verify_jwt(): {str(e)}")
         return None  # Invalid token
 
 
@@ -131,11 +148,11 @@ def verify_jwt(token):
 #############################################################
 @app.before_request
 def authenticate_request():
-    print(f"Incoming request: {request.method} {request.path}")
+    app.logger.info(f"Incoming request: {request.method} {request.path}")
 
     token = request.headers.get("Authorization")
     if not token:
-        print("Missing Authorization header")
+        app.logger.info("Missing Authorization header")
         return jsonify({"error": "Missing token"}), 403
 
     #############################################################
@@ -143,10 +160,10 @@ def authenticate_request():
     #############################################################
     username = verify_jwt(token.replace("Bearer ", ""))
     if not username:
-        print("Invalid or expired token")
+        app.logger.info("Invalid or expired token")
         return jsonify({"error": "Invalid or expired token"}), 403
 
-    print(f"Authenticated User: {username}")
+    app.logger.info(f"Authenticated User: {username}")
     g.username = username  # Store authenticated user globally
 
     #############################################################
@@ -159,10 +176,10 @@ def authenticate_request():
             user_exists = cur.fetchone()
 
             if not user_exists:
-                print(f"User {username} does not exist in users table (Unexpected scenario)")
+                app.logger.info(f"User {username} does not exist in users table (Unexpected scenario)")
                 return jsonify({"error": "User authentication error"}), 500
 
-    print(f"User {username} is verified in the database.")
+    app.logger.info(f"User {username} is verified in the database.")
 
 
 #############################################################
@@ -530,7 +547,7 @@ def cleanup_expired_links():
                 conn.commit()
 
         if deleted_rows > 0:
-            print(f"Cleaned up {deleted_rows} expired links.")
+            app.logger.info(f"Cleaned up {deleted_rows} expired links.")
 
 
 if __name__ == "__main__":

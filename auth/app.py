@@ -1,13 +1,32 @@
+import os
+import hmac
+import time
 import json
 import base64
-import hmac
 import hashlib
-import time
-from flask import Flask, request, jsonify, g
 import psycopg2
-import os
+from logging.config import dictConfig
+from flask import Flask, request, jsonify, g
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
+
+
 SECRET_KEY = "Rigel"  # Secret key for signing JWT tokens
 
 # Load DB URL from environment (set in docker-compose)
@@ -18,7 +37,6 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
 # Tracking failed login attempts
-FAILED_LOGINS = {}
 LOCKOUT_THRESHOLD = 3 # Maximum failed login attempts before lockout
 LOCKOUT_DURATION = 120 # Lockout time: 2 mins (120 secs)
 
@@ -35,9 +53,13 @@ def create_tables():
                     username TEXT PRIMARY KEY,
                     token TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS failed_logins (
+                    username TEXT PRIMARY KEY,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    lock_until TIMESTAMP
+                );
             """)
             conn.commit()
-
 
 #############################################################
 #     MAYBE BONUS?: Hashing the password using SHA-256
@@ -73,7 +95,7 @@ def generate_jwt(username):
             """, (username, token))
             conn.commit()
 
-    print(f"Token stored for {username}: {token}")
+    app.logger.info(f"Token stored for {username}: {token[0:12]}...")
     return token
 
 
@@ -131,7 +153,7 @@ def logout():
 
     username = verify_jwt(token.replace("Bearer ", ""))
 
-    print(f"Logging out user: {username}")
+    app.logger.info(f"Logging out user: {username}")
 
     #############################################################
     #  Fetch and display session state before logout
@@ -141,7 +163,7 @@ def logout():
             cur.execute("SELECT token FROM sessions WHERE username = %s", (username,))
             session_exists = cur.fetchone() is not None  # Check if session exists
 
-    print(f"SESSION_STORE before logout: Exists in DB? {session_exists}")
+    app.logger.info(f"SESSION_STORE before logout: Exists in DB? {session_exists}")
 
     #############################################################
     #  Invalidate session in PostgreSQL instead of SESSION_STORE
@@ -152,7 +174,7 @@ def logout():
                 cur.execute("DELETE FROM sessions WHERE username = %s", (username,))
                 conn.commit()
 
-        print("Token successfully removed from database")
+        app.logger.info("Token successfully removed from database")
 
     #############################################################
     #  Fetch and display session state after logout
@@ -162,7 +184,7 @@ def logout():
             cur.execute("SELECT token FROM sessions WHERE username = %s", (username,))
             session_exists_after = cur.fetchone() is not None
 
-    print(f"SESSION_STORE after logout: Exists in DB? {session_exists_after}")
+    app.logger.info(f"SESSION_STORE after logout: Exists in DB? {session_exists_after}")
 
     return jsonify({"message": "Logged out successfully"}), 200
 
@@ -199,7 +221,7 @@ def verify_jwt(token):
         ).decode().rstrip("=")
 
         if signature != expected_signature:
-            print("Invalid JWT signature")
+            app.logger.info("Invalid JWT signature")
             return None  # Invalid signature
 
         #############################################################
@@ -208,7 +230,7 @@ def verify_jwt(token):
         decoded_payload = json.loads(base64.urlsafe_b64decode(payload + "==").decode())
 
         if decoded_payload["exp"] < time.time():
-            print("Token has expired")
+            app.logger.info("Token has expired")
             return None  # Token expired
 
         username = decoded_payload["username"]
@@ -221,21 +243,21 @@ def verify_jwt(token):
                 cur.execute("SELECT token FROM sessions WHERE username = %s", (username,))
                 result = cur.fetchone()
 
-        print(f"SESSION_STORE during verification (DB check): Token exists? {bool(result)}")
+        app.logger.info(f"SESSION_STORE during verification (DB check): Token exists? {bool(result)}")
 
         if not result:
-            print(f"User '{username}' not found in sessions database")
+            app.logger.info(f"User '{username}' not found in sessions database")
             return None  # User not logged in
 
         stored_token = result[0]
         if stored_token != token:
-            print(f"Token mismatch! Stored: {stored_token}, Provided: {token}")
+            app.logger.info(f"Token mismatch! Stored: {stored_token}, Provided: {token}")
             return None  # Token has been replaced or invalidated
 
-        print(f"Token is valid for user: {username}")
+        app.logger.info(f"Token is valid for user: {username}")
         return username
     except Exception as e:
-        print(f"Exception in verify_jwt: {str(e)}")
+        app.logger.info(f"Exception in verify_jwt: {str(e)}")
         return None  # Invalid token
 
 
@@ -273,12 +295,12 @@ def register_user():
 #############################################################
 @app.route("/users/login", methods=["POST"])
 def login_user():
-    print("login_user() function triggered")
+    app.logger.info("login_user() function triggered")
 
     data = request.json
     username, password = data.get("username"), data.get("password")
 
-    print(f"Login attempt for username: {username}")
+    app.logger.info(f"Login attempt for username: {username}")
 
     #############################################################
     # BONUS: Account lockout after 3 failed attempts for 120 secs.
@@ -293,7 +315,7 @@ def login_user():
                 remaining_time = int(lock_until - time.time())
 
                 if attempts >= LOCKOUT_THRESHOLD and remaining_time > 0:
-                    print(f"User {username} is locked out for {remaining_time} more seconds")
+                    app.logger.info(f"User {username} is locked out for {remaining_time} more seconds")
                     return jsonify({"error": f"Account temporarily locked. Try again in {remaining_time} seconds"}), 403
 
     #############################################################
@@ -305,9 +327,9 @@ def login_user():
             result = cur.fetchone()
 
             if not result or not verify_password(password, result[0]):
-                print(f"Invalid login attempt for {username}")
+                app.logger.info(f"Invalid login attempt for {username}")
 
-                # Update failed login attempts in PostgreSQL instead of FAILED_LOGINS
+                # Update failed login attempts in PostgreSQL instead of failed_logins
                 cur.execute("""
                     INSERT INTO failed_logins (username, attempts, lock_until)
                     VALUES (%s, 1, %s)
@@ -331,7 +353,7 @@ def login_user():
     #############################################################
     token = generate_jwt(username)
 
-    print(f"Login successful for {username}. Token issued.")
+    app.logger.info(f"Login successful for {username}. Token issued.")
     return jsonify({"token": token}), 200
 
 

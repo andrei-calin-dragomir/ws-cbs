@@ -25,18 +25,17 @@ dictConfig({
 })
 
 app = Flask(__name__)
-
-
 SECRET_KEY = "Rigel"  # Secret key for signing JWT tokens
 
 # Load DB URL from environment (set in docker-compose)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://grp331:Group33@localhost/url_shortener_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://grp331:Group33@db/url_shortener_db")
 
 # Function to connect to PostgreSQL
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
 # Tracking failed login attempts
+FAILED_LOGINS = {}
 LOCKOUT_THRESHOLD = 3 # Maximum failed login attempts before lockout
 LOCKOUT_DURATION = 120 # Lockout time: 2 mins (120 secs)
 
@@ -55,11 +54,12 @@ def create_tables():
                 );
                 CREATE TABLE IF NOT EXISTS failed_logins (
                     username TEXT PRIMARY KEY,
-                    attempts INTEGER NOT NULL DEFAULT 0,
-                    lock_until TIMESTAMP
+                    attempts INTEGER DEFAULT 0,
+                    lock_until BIGINT DEFAULT NULL
                 );
             """)
             conn.commit()
+
 
 #############################################################
 #     MAYBE BONUS?: Hashing the password using SHA-256
@@ -95,7 +95,7 @@ def generate_jwt(username):
             """, (username, token))
             conn.commit()
 
-    app.logger.info(f"Token stored for {username}: {token[0:12]}...")
+    app.logger.info(f"Token stored for {username}: {token}")
     return token
 
 
@@ -303,7 +303,7 @@ def login_user():
     app.logger.info(f"Login attempt for username: {username}")
 
     #############################################################
-    # BONUS: Account lockout after 3 failed attempts for 120 secs.
+    # Account lockout after 3 failed attempts for 120 secs.
     #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -312,14 +312,14 @@ def login_user():
 
             if lock_data:
                 attempts, lock_until = lock_data
-                remaining_time = int(lock_until - time.time())
+                remaining_time = int((lock_until or 0) - time.time())
 
                 if attempts >= LOCKOUT_THRESHOLD and remaining_time > 0:
                     app.logger.info(f"User {username} is locked out for {remaining_time} more seconds")
                     return jsonify({"error": f"Account temporarily locked. Try again in {remaining_time} seconds"}), 403
 
     #############################################################
-    #  Verify credentials from PostgreSQL instead of in-memory users_db
+    # Verify user credentials from PostgreSQL
     #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -329,7 +329,7 @@ def login_user():
             if not result or not verify_password(password, result[0]):
                 app.logger.info(f"Invalid login attempt for {username}")
 
-                # Update failed login attempts in PostgreSQL instead of failed_logins
+                # Ensure the user exists in `failed_logins` and update accordingly
                 cur.execute("""
                     INSERT INTO failed_logins (username, attempts, lock_until)
                     VALUES (%s, 1, %s)
@@ -349,11 +349,9 @@ def login_user():
             conn.commit()
 
     #############################################################
-    #  Generate JWT and store in PostgreSQL instead of SESSION_STORE
+    # Generate JWT and return token
     #############################################################
     token = generate_jwt(username)
-
-    app.logger.info(f"Login successful for {username}. Token issued.")
     return jsonify({"token": token}), 200
 
 
@@ -362,7 +360,7 @@ def login_user():
 #############################################################
 @app.before_request
 def authenticate_request():
-    if request.path.startswith("/users"):  # Skip authentication for user routes
+    if request.path.startswith("/users") or request.path in ["/health", "/metrics"]:  # Skip authentication for user routes
         return
     token = request.headers.get("Authorization")
     if not token:
@@ -372,7 +370,12 @@ def authenticate_request():
         return jsonify({"error": "Invalid or expired token"}), 403
     g.username = username  # Store the authenticated user globally
 
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
+
 if __name__ == "__main__":
     create_tables()
     app.run(host="0.0.0.0", port=5001, debug=True)
-

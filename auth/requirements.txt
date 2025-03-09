@@ -1,3 +1,4 @@
 flask
 requests
 psycopg2-binary  # Add this for PostgreSQL support
+redis

@@ -4,6 +4,7 @@ import re
 import json
 import time
 import hmac
+import redis
 import string
 import random
 import base64
@@ -59,7 +60,7 @@ app = Flask(__name__)
 # 'id' : {'url', 'expiry_time'} pairs
 
 # Get database connection URL from environment variables
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://grp331:Group33@localhost/url_shortener_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://grp331:Group33@db/url_shortener_db")
 
 # Function to establish a database connection
 def get_db_connection():
@@ -89,6 +90,9 @@ BASE62 = string.ascii_letters + string.digits
 
 # JWT Secret Key (Must match authentication service)
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL")
+
+# BONUS: Connect to Redis
+redis_client = redis.Redis(host="redis", port=6379, decode_responses=True)
 
 #############################################################
 #  Verify the JWT token by making a request
@@ -149,6 +153,10 @@ def verify_jwt(token):
 @app.before_request
 def authenticate_request():
     app.logger.info(f"Incoming request: {request.method} {request.path}")
+
+    # Skip authentication for the health check endpoint
+    if request.path in ["/health", "/metrics"]:
+        return
 
     token = request.headers.get("Authorization")
     if not token:
@@ -232,25 +240,39 @@ def base_handler():
     if not hasattr(g, "username"):
         return jsonify({"error": "Unauthorized access"}), 403
 
+    user_cache_key = f"user_urls:{g.username}"  # Unique cache key for each user
+
     #############################################################
-    #  GET: Retrieve all short IDs for the authenticated user
+    #  GET: Retrieve all short IDs for the authenticated user (Use Redis)
     #############################################################
     if request.method == "GET":
+        # Check Redis cache first
+        cached_mappings = redis_client.get(user_cache_key)
+        if cached_mappings:
+            return jsonify({"value": json.loads(cached_mappings)}), 200
+
+        # If not in cache, query the database
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT short_id FROM urls WHERE username = %s", (g.username,))
                 mappings = [row[0] for row in cur.fetchall()]
 
+        # Store result in Redis cache (expires in 1 hour)
+        redis_client.setex(user_cache_key, 21600, json.dumps(mappings))
+
         return jsonify({"value": mappings if mappings else None}), 200
 
     #############################################################
-    #  DELETE: Remove all shortened URLs for the authenticated user
+    #  DELETE: Remove all shortened URLs for the authenticated user (Clear Redis)
     #############################################################
     elif request.method == "DELETE":
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("DELETE FROM urls WHERE username = %s", (g.username,))
                 conn.commit()
+
+        # Remove cache entry for this user
+        redis_client.delete(user_cache_key)
 
         return "", 404
 
@@ -280,19 +302,29 @@ def base_entry_handler(id):
             original_url = result[0]
 
     #############################################################
-    #  GET: Return the original URL
+    #  GET: Return the original URL (With Redis Caching)
     #############################################################
     if request.method == "GET":
+        # First, check Redis cache
+        cached_url = redis_client.get(id)
+        if cached_url:
+            return jsonify({"value": cached_url}), 301
+
+        # If not in cache, return from DB and store in Redis
+        redis_client.setex(id, 21600, original_url)  # Cache for 1 hour
         return jsonify({"value": original_url}), 301
 
     #############################################################
-    #  DELETE: Remove the shortened URL from the database
+    #  DELETE: Remove the shortened URL from the database and Redis
     #############################################################
     elif request.method == "DELETE":
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("DELETE FROM urls WHERE short_id = %s AND username = %s", (id, g.username))
                 conn.commit()
+
+        # Remove from Redis cache as well
+        redis_client.delete(id)
 
         return "", 204
 
@@ -367,6 +399,10 @@ def shorten_url():
 
                 conn.commit()
 
+        #############################################################
+        #  Store in Redis cache (expire in 1 hour)
+        #############################################################
+        redis_client.setex(short_id, 21600, long_url)
         return jsonify({"id": short_id}), 201
 
     except (KeyError, ValueError) as e:
@@ -385,7 +421,6 @@ def shorten_url():
 #       1. A string
 #       2. A JSON body
 #############################################################
-
 @app.route("/<string:id>", methods=["PUT"])
 def update_entry_url(id):
     try:
@@ -394,10 +429,10 @@ def update_entry_url(id):
         #############################################################
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT 1 FROM urls WHERE short_id = %s AND username = %s", (id, g.username))
-                url_exists = cur.fetchone()
+                cur.execute("SELECT original_url FROM urls WHERE short_id = %s AND username = %s", (id, g.username))
+                url_entry = cur.fetchone()
 
-                if not url_exists:
+                if not url_entry:
                     return jsonify({"error": "Unauthorized Access or Short URL not found"}), 403
 
         #############################################################
@@ -432,6 +467,11 @@ def update_entry_url(id):
 
                 conn.commit()
 
+        #############################################################
+        # Update Redis Cache (New URL)
+        #############################################################
+        redis_client.setex(id, 21600, new_url)  # Cache updated URL for 1 hour
+
         return jsonify({"message": "Update successful"}), 200
 
     except (KeyError, ValueError) as e:
@@ -457,7 +497,7 @@ def update_url(id):
         #############################################################
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT short_id FROM urls WHERE short_id = %s AND username = %s", (id, g.username))
+                cur.execute("SELECT original_url FROM urls WHERE short_id = %s AND username = %s", (id, g.username))
                 url_entry = cur.fetchone()
 
                 if not url_entry:
@@ -505,7 +545,15 @@ def update_url(id):
                         SET short_id = %s, expiry_time = %s
                         WHERE short_id = %s AND username = %s
                     """, (new_custom_id, expiry_timestamp, id, g.username))
+                    conn.commit()
+
+                    #############################################################
+                    #  Update Redis: Remove old cache, store new ID
+                    #############################################################
+                    redis_client.delete(id)  # Remove old ID from cache
+                    redis_client.setex(new_custom_id, 21600, url_entry[0])  # Store new ID in cache
                     id = new_custom_id  # Update reference to new ID
+
                 else:
                     # Only update expiry_time if custom_id remains unchanged
                     cur.execute("""
@@ -550,11 +598,15 @@ def cleanup_expired_links():
             app.logger.info(f"Cleaned up {deleted_rows} expired links.")
 
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
+
 if __name__ == "__main__":
     # Start auto cleanup thread
     cleanup_thread = threading.Thread(target=cleanup_expired_links, daemon=True)
     cleanup_thread.start()
     create_tables()
     app.run(host="0.0.0.0", port=5000, debug=True)
-
 

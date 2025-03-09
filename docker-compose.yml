@@ -4,7 +4,7 @@ services:
   postgres_db:
     image: postgres:latest
     container_name: postgres_db
-    restart: always
+    restart: on-failure
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -16,39 +16,84 @@ services:
       start_period: 10s
     volumes:
       - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432"
 
   auth_service:
     build:
       context: ./auth
       dockerfile: Dockerfile
     container_name: auth_service
+    restart: on-failure
     depends_on:
       postgres_db:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://user:password@postgres_db/url_shortener_db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://auth_service:5001/health || exit 1"]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+    ports:
+      - "5001"
 
   url_shortener_service:
     build:
       context: ./url_shortener
       dockerfile: Dockerfile
     container_name: url_shortener_service
+    restart: on-failure
     depends_on:
-      - auth_service
+      postgres_db:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://user:password@postgres_db/url_shortener_db
       - AUTH_SERVICE_URL=http://auth_service:5001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://url_shortener:5000/health"]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+    ports:
+      - "5000"
 
   nginx:
     image: nginx:latest
     container_name: nginx
+    restart: always
     ports:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - auth_service
-      - url_shortener_service
+      url_shortener_service:
+        condition: service_healthy
+      auth_service:
+        condition: service_healthy
+
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    restart: always
+    command: redis-server --save "" --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+    ports:
+      - "6379"
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup --interval 30
 
 volumes:
   db_data:

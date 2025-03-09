@@ -24,12 +24,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5001/users",
+					"raw": "http://{{entrypoint}}{{auth_endpoint}}/users",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
+						"{{entrypoint}}{{auth_endpoint}}"
 					],
-					"port": "5001",
 					"path": [
 						"users"
 					]
@@ -92,12 +91,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5001/users/login",
+					"raw": "http://{{entrypoint}}{{auth_endpoint}}/users/login",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
+						"{{entrypoint}}{{auth_endpoint}}"
 					],
-					"port": "5001",
 					"path": [
 						"users",
 						"login"
@@ -171,12 +169,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5000/",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}/",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
+						"{{entrypoint}}{{shorten_endpoint}}"
 					],
-					"port": "5000",
 					"path": [
 						""
 					]
@@ -226,14 +223,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://{{ip}}:5000/",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						""
+						"{{entrypoint}}{{shorten_endpoint}}"
 					]
 				}
 			},
@@ -264,14 +257,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5000/{{generatedId}}",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}{{generatedId}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						"{{generatedId}}"
+						"{{entrypoint}}{{shorten_endpoint}}{{generatedId}}"
 					]
 				}
 			},
@@ -317,14 +306,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://{{ip}}:5000/{{generatedId}}",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}{{generatedId}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						"{{generatedId}}"
+						"{{entrypoint}}{{shorten_endpoint}}{{generatedId}}"
 					]
 				}
 			},
@@ -361,14 +346,10 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://{{ip}}:5000/{{generatedId}}",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}{{generatedId}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						"{{generatedId}}"
+						"{{entrypoint}}{{shorten_endpoint}}{{generatedId}}"
 					]
 				}
 			},
@@ -415,14 +396,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5000/",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						""
+						"{{entrypoint}}{{shorten_endpoint}}"
 					]
 				}
 			},
@@ -515,14 +492,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5000/",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						""
+						"{{entrypoint}}{{shorten_endpoint}}"
 					]
 				}
 			},
@@ -585,14 +558,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5000/{{advanced_custom_randomID}}",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}{{advanced_custom_randomID}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						"{{advanced_custom_randomID}}"
+						"{{entrypoint}}{{shorten_endpoint}}{{advanced_custom_randomID}}"
 					]
 				}
 			},
@@ -683,18 +652,28 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip}}:5000/",
+					"raw": "http://{{entrypoint}}{{shorten_endpoint}}",
 					"protocol": "http",
 					"host": [
-						"{{ip}}"
-					],
-					"port": "5000",
-					"path": [
-						""
+						"{{entrypoint}}{{shorten_endpoint}}"
 					]
 				}
 			},
 			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "generatedId",
+			"value": ""
+		},
+		{
+			"key": "custom_randomId",
+			"value": ""
+		},
+		{
+			"key": "advanced_generatedId",
+			"value": ""
 		}
 	]
 }

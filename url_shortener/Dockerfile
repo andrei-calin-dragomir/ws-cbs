@@ -11,8 +11,5 @@ COPY app.py .
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Expose port 5000 for the URL shortener service
-EXPOSE 5000
-
 # Run the URL shortener service
 CMD ["python", "app.py"]

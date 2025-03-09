@@ -88,7 +88,7 @@ URL_REGEX = re.compile(r'^(http|https)://[^ "<>]*$')
 BASE62 = string.ascii_letters + string.digits
 
 # JWT Secret Key (Must match authentication service)
-AUTH_SERVICE_URL = "http://auth_service:5001"
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL")
 
 #############################################################
 #  Verify the JWT token by making a request

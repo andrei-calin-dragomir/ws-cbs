@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "Create User 1 Copy",
+			"name": "Create Demo User",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -37,7 +37,37 @@
 			"response": []
 		},
 		{
-			"name": "Get JWT Token Copy",
+			"name": "Create Custom User",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\" : \"\",\n    \"password\" : \"\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{entrypoint}}{{auth_endpoint}}/users",
+					"protocol": "http",
+					"host": [
+						"{{entrypoint}}{{auth_endpoint}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get JWT Token",
 			"event": [
 				{
 					"listen": "test",
@@ -105,7 +135,7 @@
 			"response": []
 		},
 		{
-			"name": "Create New Entry Copy",
+			"name": "Create New Entry",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -182,7 +212,7 @@
 			"response": []
 		},
 		{
-			"name": "Get All Entries Copy",
+			"name": "Get All Entries",
 			"event": [
 				{
 					"listen": "test",
@@ -233,7 +263,7 @@
 			"response": []
 		},
 		{
-			"name": "Change URL for Entry Copy",
+			"name": "Change URL for Entry",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -267,7 +297,7 @@
 			"response": []
 		},
 		{
-			"name": "Get Specific Entry Copy",
+			"name": "Get Specific Entry",
 			"event": [
 				{
 					"listen": "test",
@@ -316,7 +346,7 @@
 			"response": []
 		},
 		{
-			"name": "Delete Specific Entry Copy",
+			"name": "Delete Specific Entry",
 			"event": [
 				{
 					"listen": "test",
@@ -356,7 +386,7 @@
 			"response": []
 		},
 		{
-			"name": "Delete All Entries Copy",
+			"name": "Delete All Entries",
 			"event": [
 				{
 					"listen": "test",
@@ -406,7 +436,7 @@
 			"response": []
 		},
 		{
-			"name": "Create Entry Expiry Copy",
+			"name": "Create Entry Expiry",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -502,7 +532,7 @@
 			"response": []
 		},
 		{
-			"name": "Update Entry Data Copy",
+			"name": "Update Entry Data",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -568,7 +598,7 @@
 			"response": []
 		},
 		{
-			"name": "Create Entry Custom ID Copy",
+			"name": "Create Entry Custom ID",
 			"event": [
 				{
 					"listen": "prerequest",

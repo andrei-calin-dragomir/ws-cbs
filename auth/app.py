@@ -25,20 +25,19 @@ dictConfig({
 })
 
 app = Flask(__name__)
-SECRET_KEY = "Rigel"  # Secret key for signing JWT tokens
 
 # Load DB URL from environment (set in docker-compose)
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://grp331:Group33@db/url_shortener_db")
-
-# Function to connect to PostgreSQL
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+SECRET_KEY = "Rigel"  # Secret key for signing JWT tokens
 
 # Tracking failed login attempts
 FAILED_LOGINS = {}
 LOCKOUT_THRESHOLD = 3 # Maximum failed login attempts before lockout
 LOCKOUT_DURATION = 120 # Lockout time: 2 mins (120 secs)
 
+# Function to connect to PostgreSQL
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
 
 def create_tables():
     with get_db_connection() as conn:
@@ -119,9 +118,7 @@ def change_password():
     if not old_password or not new_password:
         return jsonify({"error": "Old and new passwords are required"}), 400
 
-    #############################################################
     #  Verify old password from PostgreSQL instead of in-memory users_db
-    #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT password_hash FROM users WHERE username = %s", (username,))
@@ -155,9 +152,7 @@ def logout():
 
     app.logger.info(f"Logging out user: {username}")
 
-    #############################################################
     #  Fetch and display session state before logout
-    #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT token FROM sessions WHERE username = %s", (username,))
@@ -165,9 +160,7 @@ def logout():
 
     app.logger.info(f"SESSION_STORE before logout: Exists in DB? {session_exists}")
 
-    #############################################################
     #  Invalidate session in PostgreSQL instead of SESSION_STORE
-    #############################################################
     if username and session_exists:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -176,9 +169,7 @@ def logout():
 
         app.logger.info("Token successfully removed from database")
 
-    #############################################################
     #  Fetch and display session state after logout
-    #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT token FROM sessions WHERE username = %s", (username,))
@@ -213,9 +204,7 @@ def verify_jwt(token):
     try:
         header, payload, signature = token.split(".")
 
-        #############################################################
         #  Validate the signature manually (Base64 + HMAC)
-        #############################################################
         expected_signature = base64.urlsafe_b64encode(
             hmac.new(SECRET_KEY.encode(), f"{header}.{payload}".encode(), hashlib.sha256).digest()
         ).decode().rstrip("=")
@@ -224,9 +213,7 @@ def verify_jwt(token):
             app.logger.info("Invalid JWT signature")
             return None  # Invalid signature
 
-        #############################################################
         #  Decode payload and check expiration time
-        #############################################################
         decoded_payload = json.loads(base64.urlsafe_b64decode(payload + "==").decode())
 
         if decoded_payload["exp"] < time.time():
@@ -235,9 +222,7 @@ def verify_jwt(token):
 
         username = decoded_payload["username"]
 
-        #############################################################
         #  Check if the token is still active in PostgreSQL instead of SESSION_STORE
-        #############################################################
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT token FROM sessions WHERE username = %s", (username,))
@@ -275,9 +260,7 @@ def register_user():
 
     hashed_password = hash_password(password)
 
-    #############################################################
     #  Store new user in PostgreSQL instead of in-memory users_db
-    #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             try:
@@ -302,9 +285,7 @@ def login_user():
 
     app.logger.info(f"Login attempt for username: {username}")
 
-    #############################################################
     # Account lockout after 3 failed attempts for 120 secs.
-    #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT attempts, lock_until FROM failed_logins WHERE username = %s", (username,))
@@ -318,9 +299,7 @@ def login_user():
                     app.logger.info(f"User {username} is locked out for {remaining_time} more seconds")
                     return jsonify({"error": f"Account temporarily locked. Try again in {remaining_time} seconds"}), 403
 
-    #############################################################
     # Verify user credentials from PostgreSQL
-    #############################################################
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT password_hash FROM users WHERE username = %s", (username,))
@@ -348,9 +327,7 @@ def login_user():
             cur.execute("DELETE FROM failed_logins WHERE username = %s", (username,))
             conn.commit()
 
-    #############################################################
     # Generate JWT and return token
-    #############################################################
     token = generate_jwt(username)
     return jsonify({"token": token}), 200
 

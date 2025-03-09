@@ -7,9 +7,12 @@ WORKDIR /app
 # Copy necessary files
 COPY app.py .
 
-# Install (minimal dependencies for efficiency)
+# Install Flask and requests (needed for token verification)
+RUN apt-get update && apt-get install -y curl
+RUN pip install flask requests
+
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Run the URL shortener service
 CMD ["python", "app.py"]

@@ -18,6 +18,27 @@ We use NGINX as our reverse proxy, therefore their endpoints are:
 **Authentication Service**: `//http:localhost/api/auth`
 **URL Shortening Service**: `//http:localhost/api/shorten`
 
+## Kubernetes Deployment (Needs Testing)
+
+You can deploy the application using the following command:
+
+```bash
+kubectl apply -f k8s_deployments.yaml
+```
+This command:
+1. Creates the Namespace, Deployments, Services, Persistent Volume Claim (PVC), and Ingress Controller.
+2. Ensures Kubernetes schedules the Pods and connects them via Services.
+
+To check the deployment you can use:
+
+```bash
+kubectl get pods -n ws-cbs # Checks Pods
+kubectl get svc -n ws-cbs # Checks Services
+kubectl get ingress -n ws-cbs # Checks ingress controller
+kubectl get pvc -n ws-cbs # Checks the PVC of the DB
+```
+
+
 ## Testing
 
 ### Some CURL Requests

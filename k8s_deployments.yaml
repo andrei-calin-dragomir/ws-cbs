@@ -21,6 +21,8 @@ spec:
       labels:
         app: postgres
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: "" # Ensures it runs on the control plane node
       containers:
         - name: postgres
           image: postgres:latest
@@ -84,6 +86,8 @@ spec:
       labels:
         app: auth-service
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/worker: "" # Ensures deployment on worker nodes
       containers:
         - name: auth-service
           image: andreicalindragomir/ws-cbs:auth_service
@@ -105,8 +109,7 @@ spec:
     - protocol: TCP
       port: 5001
       targetPort: 5001
-      nodePort: 30001 # External port
-  type: NodePort
+  type: ClusterIP # Not exposed externally
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -116,7 +119,7 @@ metadata:
   labels:
     app: url-shortener
 spec:
-  replicas: 3 # Required for assignment
+  replicas: 3
   selector:
     matchLabels:
       app: url-shortener
@@ -125,6 +128,8 @@ spec:
       labels:
         app: url-shortener
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/worker: "" # Ensures deployment on worker nodes
       containers:
         - name: url-shortener
           image: andreicalindragomir/ws-cbs:url_shortener_service
@@ -148,5 +153,31 @@ spec:
     - protocol: TCP
       port: 5000
       targetPort: 5000
-      nodePort: 30000 # External port
-  type: NodePort
+  type: ClusterIP # Not exposed externally
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ws-cbs-ingress
+  namespace: ws-cbs
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api/auth/
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 5001
+          - path: /api/shorten/
+            pathType: Prefix
+            backend:
+              service:
+                name: url-shortener
+                port:
+                  number: 5000

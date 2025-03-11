@@ -4,6 +4,18 @@ kind: Namespace
 metadata:
   name: ws-cbs
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: ws-cbs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -55,19 +67,7 @@ spec:
     - protocol: TCP
       port: 5432
       targetPort: 5432
-  clusterIP: None # Headless service for internal DB connection
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-  namespace: ws-cbs
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -86,8 +86,8 @@ spec:
       labels:
         app: auth-service
     spec:
-      nodeSelector:
-        node-role.kubernetes.io/worker: "" # Ensures deployment on worker nodes
+      # nodeSelector:
+      #   node-role.kubernetes.io/worker: "" # (NOT AVAILABLE FOR MINIKUBE) Ensures deployment on worker nodes
       containers:
         - name: auth-service
           image: andreicalindragomir/ws-cbs:auth_service
@@ -95,7 +95,7 @@ spec:
             - containerPort: 5001
           env:
             - name: DATABASE_URL
-              value: "postgresql://user:password@postgres.ws-cbs/url_shortener_db"
+              value: "postgresql://user:password@postgres/url_shortener_db"
 ---
 apiVersion: v1
 kind: Service
@@ -128,8 +128,8 @@ spec:
       labels:
         app: url-shortener
     spec:
-      nodeSelector:
-        node-role.kubernetes.io/worker: "" # Ensures deployment on worker nodes
+      # nodeSelector:
+      #   node-role.kubernetes.io/worker: "" # (NOT AVAILABLE FOR MINIKUBE) Ensures deployment on worker nodes
       containers:
         - name: url-shortener
           image: andreicalindragomir/ws-cbs:url_shortener_service
@@ -137,9 +137,9 @@ spec:
             - containerPort: 5000
           env:
             - name: DATABASE_URL
-              value: "postgresql://user:password@postgres.ws-cbs/url_shortener_db"
+              value: "postgresql://user:password@postgres/url_shortener_db"
             - name: AUTH_SERVICE_URL
-              value: "http://auth-service.ws-cbs:5001"
+              value: "http://auth-service:5001"
 ---
 apiVersion: v1
 kind: Service
@@ -161,23 +161,26 @@ metadata:
   name: ws-cbs-ingress
   namespace: ws-cbs
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Enable regex support in paths
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # Rewrite /api/auth/<something> to /<something>
+    nginx.ingress.kubernetes.io/rewrite-target: "/$1"
 spec:
-  ingressClassName: nginx
+  ingressClassName: "nginx"
   rules:
     - http:
         paths:
-          - path: /api/auth/
-            pathType: Prefix
+          - path: "/api/auth/(.*)"
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: auth-service
                 port:
                   number: 5001
-          - path: /api/shorten/
-            pathType: Prefix
+          - path: "/api/shorten/(.*)"
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: url-shortener
                 port:
-                  number: 5000
+                  number: 5000  

@@ -18,13 +18,24 @@ We use NGINX as our reverse proxy, therefore their endpoints are:
 **Authentication Service**: `//http:localhost/api/auth`
 **URL Shortening Service**: `//http:localhost/api/shorten`
 
-## Kubernetes Deployment (Needs Testing)
+## Kubernetes Deployment
 
 You can deploy the application using the following command:
 
 ```bash
-kubectl apply -f k8s_deployments.yaml
+minikube kubectl -- apply -f k8s_deployments.yaml
 ```
+
+Given the local scope of MiniKube, you cannot access your containers outside of the machine that the cluster is currently running on.
+Therefore, once the application is deployed you need to get the IP of the Ingress Controller like this:
+
+```bash
+minikube kubectl -- get ingress -n ws-cbs   
+```
+
+Afterwards, you can use the ADDRESS entry of the output in the curl commands available in the Testing section.
+Example: _`curl -X POST http://192.168.49.2/api/auth/users -H "Content-Type: application/json" -d '{"username" : "demo", "password" : "demopass"}'`_
+
 This command:
 1. Creates the Namespace, Deployments, Services, Persistent Volume Claim (PVC), and Ingress Controller.
 2. Ensures Kubernetes schedules the Pods and connects them via Services.
@@ -32,10 +43,10 @@ This command:
 To check the deployment you can use:
 
 ```bash
-kubectl get pods -n ws-cbs # Checks Pods
-kubectl get svc -n ws-cbs # Checks Services
-kubectl get ingress -n ws-cbs # Checks ingress controller
-kubectl get pvc -n ws-cbs # Checks the PVC of the DB
+minikube kubectl -- get pods -n ws-cbs # Checks Pods
+minikube kubectl -- get svc -n ws-cbs # Checks Services
+minikube kubectl -- get ingress -n ws-cbs # Checks ingress controller
+minikube kubectl -- get pvc -n ws-cbs # Checks the PVC of the DB
 ```
 
 
@@ -44,12 +55,12 @@ kubectl get pvc -n ws-cbs # Checks the PVC of the DB
 ### Some CURL Requests
 1. **Create User**: 
 ```bash
-curl -X POST //http:localhost/api/auth/users -H "Content-Type: application/json" -d '{"username" : "demo", "password" : "demopass"}'
+curl -X POST http://localhost/api/auth/users -H "Content-Type: application/json" -d '{"username" : "demo", "password" : "demopass"}'
 ```
 
 2. **Login (Get JWT Token)**: 
 ```bash
-curl -X POST //http:localhost/api/auth/users/login -H "Content-Type: application/json" -d '{"username" : "demo", "password" : "demopass"}'
+curl -X POST http://localhost/api/auth/users/login -H "Content-Type: application/json" -d '{"username" : "demo", "password" : "demopass"}'
 ```
 
 

@@ -49,6 +49,11 @@ minikube kubectl -- get ingress -n ws-cbs # Checks ingress controller
 minikube kubectl -- get pvc -n ws-cbs # Checks the PVC of the DB
 ```
 
+To check how requests are distributed to different replicas of the _url\_shortener_ service, we use the logs of our Ingress Controller:
+```bash
+minikube kubectl -- get endpoints url-shortener -o wide -n ws-cbs # Get url shortener endpoints
+minikube kubectl -- logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx --follow # Get nginx logs
+```
 
 ## Testing
 
